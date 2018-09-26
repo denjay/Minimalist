@@ -25,38 +25,38 @@ def humanize(flow):
         return '{:.0f}'.format(flow) + ('B', 'KB')[n]
 
 
-def get_cpu_and_mem_date():
+def get_cpu_and_mem_data():
     global mode1
-    global cpu_date0
+    global cpu_data0
     global time0
     global flag
     if flag == 0 or time0 == 0:
         time0 = time.time()
-        cpu_date0 = open('/proc/stat', 'r').readline().split()[1:]
+        cpu_data0 = open('/proc/stat', 'r').readline().split()[1:]
         time.sleep(0.5)
 
     time1 = time.time()
-    cpu_date1 = open('/proc/stat', 'r').readline().split()[1:]
-    cpu_usage_rate = 1 - (int(cpu_date1[3]) - int(cpu_date0[3])) / \
-        sum(map(lambda x, y: int(y) - int(x), cpu_date0, cpu_date1))
+    cpu_data1 = open('/proc/stat', 'r').readline().split()[1:]
+    cpu_usage_rate = 1 - (int(cpu_data1[3]) - int(cpu_data0[3])) / \
+        sum(map(lambda x, y: int(y) - int(x), cpu_data0, cpu_data1))
     # 避免由于计算误差出现使用率超过100%的情况
     if cpu_usage_rate > 1.0:
         cpu_usage_rate = 1.0
 
-    cpu_date0 = cpu_date1
+    cpu_data0 = cpu_data1
     time0 = time1
     flag = 1
     if mode1 == 1:
         return ' CPU:{:.0f}% '.format(cpu_usage_rate * 100)
     else:
-        memory_date = open('/proc/meminfo', 'r').readlines()
+        memory_data = open('/proc/meminfo', 'r').readlines()
         memory_usage_rate = 1 - \
-            int(memory_date[2].split()[1]) / int(memory_date[0].split()[1])
+            int(memory_data[2].split()[1]) / int(memory_data[0].split()[1])
         return ' CPU:{:.0f}%   MEM:{:.0f}% '.format(cpu_usage_rate * 100, memory_usage_rate * 100)
 
 
 # 获得流量数据
-def get_net_date():
+def get_net_data():
     global rec_list0
     global tra_list0
     global time0
@@ -66,18 +66,18 @@ def get_net_date():
     if flag == 1 or time0 == 0:
         rec_list0 = []
         tra_list0 = []
-        dates = open('/proc/net/dev', 'r').readlines()[2:]
+        datas = open('/proc/net/dev', 'r').readlines()[2:]
         time0 = time.time()
-        for date in dates:
-            rec_list0.append(int(date.split()[1]))
-            tra_list0.append(int(date.split()[9]))
+        for data in datas:
+            rec_list0.append(int(data.split()[1]))
+            tra_list0.append(int(data.split()[9]))
         time.sleep(0.5)
 
-    dates = open('/proc/net/dev', 'r').readlines()[2:]
+    datas = open('/proc/net/dev', 'r').readlines()[2:]
     time1 = time.time()
-    for date in dates:
-        rec_list1.append(int(date.split()[1]))
-        tra_list1.append(int(date.split()[9]))
+    for data in datas:
+        rec_list1.append(int(data.split()[1]))
+        tra_list1.append(int(data.split()[9]))
     receive = max(map(lambda x, y: y - x, rec_list0,
                       rec_list1)) / (time1 - time0)
     transmit = max(map(lambda x, y: y - x, tra_list0,
@@ -95,14 +95,14 @@ def refresh():
     '''实时刷新流量显示'''
     if mode0 == 0:
         if mode1 == 1:
-            l.config(text=get_net_date()[0], width=8)
+            l.config(text=get_net_data()[0], width=8)
         elif mode1 == 0:
-            l.config(text=''.join(get_net_date()), width=16)
+            l.config(text=''.join(get_net_data()), width=16)
     else:
         if mode1 == 1:
-            l.config(text=get_cpu_and_mem_date(), width=10)
+            l.config(text=get_cpu_and_mem_data(), width=10)
         elif mode1 == 0:
-            l.config(text=get_cpu_and_mem_date(), width=19)
+            l.config(text=get_cpu_and_mem_data(), width=19)
 
     root.after(1000, refresh)
 
@@ -213,7 +213,7 @@ Terminal=false\n'''.format(os.path.realpath(__file__), sys.path[0] + '/Minimalis
 
     rec_list0 = []  # 初始数据
     tra_list0 = []  # 初始数据
-    cpu_date0 = 0  # 初始数据
+    cpu_data0 = 0  # 初始数据
     x = 0  # 用于移动窗口时储存所需鼠标位置
     y = 0  # 用于移动窗口时储存所需鼠标位置
     skins = [('GreenYellow', 'black'), ('#F5BB00', 'white'),
